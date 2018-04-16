@@ -248,8 +248,7 @@ int fitsBits(int x, int n) {
  */
 int divpwr2(int x, int n) {
     int minusone = ~0;
-    return 
-    //return (x>>n) + ((x>>31) & !!(x & ((1<<n) + minusone)) & !!n);
+    return (x>>n) + ((x>>31) & !!(x & ((1<<n) + minusone)) & !!n);
 }
 
 /* 
@@ -291,7 +290,27 @@ int isLessOrEqual(int x, int y) {
  *   Rating: 4
  */
 int ilog2(int x) {
-  return 2;
+  
+  int para5 = (0xff << 8) |(0xff);
+  int para4 = para5 ^ (para5 << 8);
+  int para3 = para4 ^ (para4 << 4);
+  int para2 = para3 ^ (para3 << 2);
+  int para1 = para2 ^ (para2 << 1);
+
+  int revx = (para5 & x)<<16 | (x&~para5) >> 16;
+  revx = (para4 & revx) << 8 | (~para4 & revx) >> 8;
+  revx = (para3 & revx) << 4 | (~para3 & revx) >> 4;
+  revx = (para2 & revx) << 2 | (~para2 & revx) >> 2;
+  revx = (para1 & revx) << 1 | (~para1 & revx) >> 1;
+  int negrevx = ~revx;
+  int to = (negrevx + 1)  ^ revx;
+
+  int a = (to & para1) + ((to>>1) & para1);
+  int b = (a & para2) + ((a>>2) & para2);
+  int c = (b & para3) + ((b>>4) & para3);
+  int d = (c & para4) + ((c>>8) & para4);
+  int e = (d & para5) + ((d>>16) & para5);
+  return e;
 }
 /* 
  * float_neg - Return bit-level equivalent of expression -f for
@@ -305,7 +324,11 @@ int ilog2(int x) {
  *   Rating: 2
  */
 unsigned float_neg(unsigned uf) {
- return 2;
+  if((uf & 0x7fc00000) == 0x7fc00000){
+    return uf;
+  } else{
+    return uf^0x80000000;
+  }
 }
 /* 
  * float_i2f - Return bit-level equivalent of expression (float) x
@@ -317,7 +340,44 @@ unsigned float_neg(unsigned uf) {
  *   Rating: 4
  */
 unsigned float_i2f(int x) {
-  return 2;
+  if(x == 0)
+    return 0;
+  int ans = 0;
+  if(x >= 0) 
+    ans = 0; 
+  else {
+    ans |= 0x80000000;
+    x = -x;
+  }
+  int exp = 0;
+  int n = 0;
+  while(n < 32){
+    if(x&(1<<n)){
+      exp = n;
+    }
+    n++;
+  }
+  ans |= (exp+127)<<23;
+  int sigpart = x&(~(0xffffffff<<exp));
+  if(exp > 23){
+    int f = sigpart >> (exp - 24);
+    ans |= f>>1;
+    int rest = f & 1;
+    if(rest){
+      if(ans & 1){
+          ans++;
+      } else{
+        rest = sigpart & (~(0xffffffff<<(exp-23)));
+        int r2 = ((rest - 1)^rest)+1;
+        if((rest<<1) != r2){
+          ans++;
+        }
+      }
+    }
+  } else{
+    ans |= ( sigpart << (-exp + 23) );
+  }
+  return ans;
 }
 /* 
  * float_twice - Return bit-level equivalent of expression 2*f for
@@ -331,5 +391,6 @@ unsigned float_i2f(int x) {
  *   Rating: 4
  */
 unsigned float_twice(unsigned uf) {
+
   return 2;
 }
