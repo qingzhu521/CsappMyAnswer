@@ -298,18 +298,19 @@ int ilog2(int x) {
   int para1 = para2 ^ (para2 << 1);
 
   int revx = (para5 & x)<<16 | (x&~para5) >> 16;
+  int negrevx,to,a,b,c,d,e;
   revx = (para4 & revx) << 8 | (~para4 & revx) >> 8;
   revx = (para3 & revx) << 4 | (~para3 & revx) >> 4;
   revx = (para2 & revx) << 2 | (~para2 & revx) >> 2;
   revx = (para1 & revx) << 1 | (~para1 & revx) >> 1;
-  int negrevx = ~revx;
-  int to = (negrevx + 1)  ^ revx;
+  negrevx = ~revx;
+  to = (negrevx + 1)  ^ revx;
 
-  int a = (to & para1) + ((to>>1) & para1);
-  int b = (a & para2) + ((a>>2) & para2);
-  int c = (b & para3) + ((b>>4) & para3);
-  int d = (c & para4) + ((c>>8) & para4);
-  int e = (d & para5) + ((d>>16) & para5);
+  a = (to & para1) + ((to>>1) & para1);
+  b = (a & para2) + ((a>>2) & para2);
+  c = (b & para3) + ((b>>4) & para3);
+  d = (c & para4) + ((c>>8) & para4);
+  e = (d & para5) + ((d>>16) & para5);
   return e;
 }
 /* 
@@ -340,17 +341,18 @@ unsigned float_neg(unsigned uf) {
  *   Rating: 4
  */
 unsigned float_i2f(int x) {
+  int ans = 0;
+  int exp = 0;
+  int n = 0,sigpart;
   if(x == 0)
     return 0;
-  int ans = 0;
   if(x >= 0) 
     ans = 0; 
   else {
     ans |= 0x80000000;
     x = -x;
   }
-  int exp = 0;
-  int n = 0;
+
   while(n < 32){
     if(x&(1<<n)){
       exp = n;
@@ -358,19 +360,21 @@ unsigned float_i2f(int x) {
     n++;
   }
   ans |= (exp+127)<<23;
-  int sigpart = x&(~(0xffffffff<<exp));
+  sigpart = x&(~(0xffffffff<<exp));
   if(exp > 23){
     int f = sigpart >> (exp - 24);
+    int rest;
     ans |= f>>1;
-    int rest = f & 1;
+    rest = f & 1;
     if(rest){
       if(ans & 1){
-          ans++;
+          ans+=1;
       } else{
+        int r2;
         rest = sigpart & (~(0xffffffff<<(exp-23)));
-        int r2 = ((rest - 1)^rest)+1;
+        r2 = ((rest - 1)^rest)+1;
         if((rest<<1) != r2){
-          ans++;
+          ans+=1;
         }
       }
     }
@@ -391,12 +395,12 @@ unsigned float_i2f(int x) {
  *   Rating: 4
  */
 unsigned float_twice(unsigned uf) {
+  int exp;
   if(uf == 0) return 0;
   if(uf == 0x80000000) return 0x80000000;
-  int exp = (uf & 0x7f800000)>>23;
+  exp = (uf & 0x7f800000)>>23;
   if(exp == 0){
     return (uf<<1)|(uf&0x80000000);
-
   } else if(exp != 0xff){
     exp = exp + 1;
     return (uf&0x80000000)|(exp<<23)|(uf&0x007fffff);
