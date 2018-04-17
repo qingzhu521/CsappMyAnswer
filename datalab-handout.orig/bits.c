@@ -383,7 +383,7 @@ unsigned float_i2f(int x) {
  * float_twice - Return bit-level equivalent of expression 2*f for
  *   floating point argument f.
  *   Both the argument and result are passed as unsigned int's, but
- *   they are to be interpreted as the bit-level representation of
+ *   they are to be interpreted as the bit-level representation of 
  *   single-precision floating point values.
  *   When argument is NaN, return argument
  *   Legal ops: Any integer/unsigned operations incl. ||, &&. also if, while
@@ -391,6 +391,16 @@ unsigned float_i2f(int x) {
  *   Rating: 4
  */
 unsigned float_twice(unsigned uf) {
+  if(uf == 0) return 0;
+  if(uf == 0x80000000) return 0x80000000;
+  int exp = (uf & 0x7f800000)>>23;
+  if(exp == 0){
+    return (uf<<1)|(uf&0x80000000);
 
-  return 2;
+  } else if(exp != 0xff){
+    exp = exp + 1;
+    return (uf&0x80000000)|(exp<<23)|(uf&0x007fffff);
+  } else{
+    return uf;
+  }
 }
