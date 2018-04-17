@@ -1,0 +1,5 @@
+.vs/slnx.sqlite
+*.suo
+.vs/CsappMyAnswer/v15/Browse.VC.db
+.vs/VSWorkspaceState.json
+*.json
