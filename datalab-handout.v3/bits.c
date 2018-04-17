@@ -343,34 +343,45 @@ unsigned float_neg(unsigned uf) {
 unsigned float_i2f(int x) {
   int ans = 0;
   int exp = 0;
-  int n = 0,sigpart;
-  if(x == 0)
+  int n = 0,sigpart,count=0;
+  if(x == 0){
     return 0;
-  if(x >= 0) 
+  }else if(x > 0){
     ans = 0; 
-  else {
-    ans |= 0x80000000;
+  }else {
+    ans = 0x80000000;
     x = -x;
   }
-
+ //exp part
   while(n < 32){
     if(x&(1<<n)){
       exp = n;
     }
     n++;
   }
-  //exp part
   ans |= (exp+127)<<23;
   //rem part
   sigpart = x&(~(0xffffffff<<exp));
   if(exp > 23){
-    int remain_part = sigpart >> (exp - 23);
-    int del_part = sigpart &  (~(0xffffffff<<(exp - 23)));
-    int r2 = ((del_part - 1) ^ del_part) + 1;
-    if(del_part != r2 || ((del_part << 1) == r2 && (sigpart & 1))){
-        remain_part = (remain_part+1) & (~(0xffffffff<<(23)));
+    int expnum = exp - 23;
+    int bit = sigpart >> (exp - 24) & 1;
+    int remain_part = sigpart >> expnum;
+    
+    n=0;
+    while(n<expnum){
+      if(sigpart & (1<<n)){
+        count++;
+      }
+      n++;
     }
     ans |= remain_part;
+    if(bit){
+      if(count>1){
+        ans++;
+      } else if(remain_part & 1){
+        ans++;
+      }
+    }
   } else{
     ans |= ( sigpart << (23 - exp) );
   }
