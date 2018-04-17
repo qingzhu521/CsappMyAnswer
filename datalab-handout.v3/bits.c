@@ -359,27 +359,20 @@ unsigned float_i2f(int x) {
     }
     n++;
   }
+  //exp part
   ans |= (exp+127)<<23;
+  //rem part
   sigpart = x&(~(0xffffffff<<exp));
   if(exp > 23){
-    int f = sigpart >> (exp - 24);
-    int rest;
-    ans |= f>>1;
-    rest = f & 1;
-    if(rest){
-      if(ans & 1){
-          ans+=1;
-      } else{
-        int r2;
-        rest = sigpart & (~(0xffffffff<<(exp-23)));
-        r2 = ((rest - 1)^rest)+1;
-        if((rest<<1) != r2){
-          ans+=1;
-        }
-      }
+    int remain_part = sigpart >> (exp - 23);
+    int del_part = sigpart &  (~(0xffffffff<<(exp - 23)));
+    int r2 = ((del_part - 1) ^ del_part) + 1;
+    if(del_part != r2 || ((del_part << 1) == r2 && (sigpart & 1))){
+        remain_part = (remain_part+1) & (~(0xffffffff<<(23)));
     }
+    ans |= remain_part;
   } else{
-    ans |= ( sigpart << (-exp + 23) );
+    ans |= ( sigpart << (23 - exp) );
   }
   return ans;
 }
